@@ -1,0 +1,112 @@
+﻿:root {
+    color-scheme: dark;
+}
+
+body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    line-height: 1.45;
+    padding: 20px;
+    background: #0b0f14;
+    color: #e6edf3;
+    box-sizing: border-box
+}
+
+main {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+h1 {
+    margin-bottom: 0.5rem;
+}
+
+.card {
+    border: 1px solid #1f2937;
+    border-radius: 12px;
+    padding: 16px;
+    margin: 12px 0;
+    background: #111827;
+}
+
+.inputBlock {
+    padding: 10px;
+    margin-right: 8px;
+    border-radius: 8px;
+    border: 1px solid #374151;
+    background: #0b1220;
+    color: #e6edf3;
+    height: 42px !important;
+    box-sizing: border-box;
+    width:70%;
+}
+
+button {
+    background-color: #2563eb;
+    border: none;
+    color: #2e3440;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    width: 30%;
+    height: 40px;
+    font-weight: 700;
+    margin: 15px auto;
+}
+
+    button:hover {
+        opacity: 0.7;
+    }
+
+ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+li {
+    padding: 6px 0;
+    border-bottom: 1px solid #1f2937;
+}
+
+#AddProposal,
+#TopProposal {
+    position: relative;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #333;
+    width: 20px;
+    height: 20px;
+    padding: 15px;
+    display: flex;
+    -webkit-justify-content: center;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 7px rgba(129, 161, 193, 0.6);
+}
+
+    .close-button:hover {
+        color: red;
+    }
+
+
+.non-display {
+    display: none !important;
+}
+
+.errorText {
+    color: red !important;
+    font-size: 18px;
+    font-weight: 700;
+    margin-top: 10px;
+    text-align: center;
+}
+

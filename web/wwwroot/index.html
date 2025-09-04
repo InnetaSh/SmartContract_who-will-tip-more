@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Who will tip more?</title>
+    <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+    <main>
+        <h1>Who will tip more?</h1>
+        <p id="status">Status: not connected</p>
+        <!-- <button id="connectBtn">Connect Wallet</button> -->
+        <button id="showAddProposalSection">add proposal</button>
+        <button id="showTopProposalSection">Top proposal</button>
+        <button id="endVotingAndWithdrawToWinner">Withdraw</button>
+
+
+
+        <section class="card non-display" id="TopProposal">
+            <button id="closeTopProposalSection" class="close-button" title="Закрыть">×</button>
+            <h2>Top proposal</h2>
+            <ul id="listItem"></ul>
+        </section>
+
+        <section class="card non-display" id="AddProposal">
+            <button id="closeAddProposal" class="close-button" title="Закрыть">×</button>
+            <h2>Add proposal</h2>
+            <input type="text" id="item" placeholder="Item proposal" class="inputBlock" />
+
+            <button id="addProposalBtn">add proposal</button>
+
+
+        </section>
+
+        <section class="card">
+            <div>Send a tip</div>
+            <input id="amount" type="number" step="0.0001" placeholder="Amount in ETH" class="inputBlock" />
+
+            <div>
+                <label for="id_proposal">Choose proposal:</label><br />
+                <select id="id_proposal" class="inputBlock">
+                </select>
+            </div>
+            <button id="voteBtn">Vote</button>
+            <div id="amountError" class="errorText"> </div>
+        </section>
+
+        <section class="card">
+            <h2>Contract</h2>
+            <div>Address: <code id="contractAddr"></code></div>
+            <div>Balance: <span id="balance">0</span> ETH</div>
+            <button id="withdrawBtn">Withdraw (owner)</button>
+        </section>
+
+        <section class="card">
+            <h2>Recent tips</h2>
+            <ul id="tipsList"></ul>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
