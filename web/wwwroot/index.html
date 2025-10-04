@@ -8,58 +8,125 @@
 </head>
 <body>
     <main>
-        <h1>Who will tip more?</h1>
-        <p id="status">Status: not connected</p>
-        <!-- <button id="connectBtn">Connect Wallet</button> -->
-        <button id="showAddProposalSection">add proposal</button>
-        <button id="showTopProposalSection">Top proposal</button>
-        <button id="endVotingAndWithdrawToWinner">Withdraw</button>
-
-
-
-        <section class="card non-display" id="TopProposal">
-            <button id="closeTopProposalSection" class="close-button" title="Закрыть">×</button>
-            <h2>Top proposal</h2>
-            <ul id="listItem"></ul>
-        </section>
-
-        <section class="card non-display" id="AddProposal">
-            <button id="closeAddProposal" class="close-button" title="Закрыть">×</button>
-            <h2>Add proposal</h2>
-            <input type="text" id="item" placeholder="Item proposal" class="inputBlock" />
-
-            <button id="addProposalBtn">add proposal</button>
-
-
-        </section>
-
-        <section class="card">
-            <div>Send a tip</div>
-            <input id="amount" type="number" step="0.0001" placeholder="Amount in ETH" class="inputBlock" />
-
-            <div>
-                <label for="id_proposal">Choose proposal:</label><br />
-                <select id="id_proposal" class="inputBlock">
-                </select>
+        <div class="task-block">
+            <div class="task-block-header">
+                <h1>TASK 1: Who will tip more?</h1>
+                <button id="showTask1SegmentBtn">show task1</button>
             </div>
-            <button id="voteBtn">Vote</button>
-            <div id="amountError" class="errorText"> </div>
-        </section>
+          
+            <div id="task1" class="non-display">
+                <button id="closeTask1SegmentBtn" class="close-button" title="Закрыть">×</button>
+                <p id="status">Status: not connected</p>
+                <!-- <button id="connectBtn">Connect Wallet</button> -->
+                <button id="showAddProposalSection">add proposal</button>
+                <button id="showTopProposalSection">Top proposal</button>
+                <button id="endVotingAndWithdrawToWinner">Stop</button>
 
-        <section class="card">
-            <h2>Contract</h2>
-            <div>Address: <code id="contractAddr"></code></div>
-            <div>Balance: <span id="balance">0</span> ETH</div>
-            <button id="withdrawBtn">Withdraw (owner)</button>
-        </section>
 
-        <section class="card">
-            <h2>Recent tips</h2>
-            <ul id="tipsList"></ul>
-        </section>
-    </main>
+
+                <section class="card non-display" id="TopProposal">
+                    <button id="closeTopProposalSection" class="close-button" title="Закрыть">×</button>
+                    <h2>Top proposal</h2>
+                    <ul id="listItem"></ul>
+                </section>
+
+                <section class="card non-display" id="AddProposal">
+                    <button id="closeAddProposal" class="close-button" title="Закрыть">×</button>
+                    <h2>Add proposal</h2>
+                    <input type="text" id="item" placeholder="Item proposal" class="inputBlock" />
+
+                    <button id="addProposalBtn">add proposal</button>
+
+
+                </section>
+
+                <section class="card">
+                    <div>Send a tip</div>
+                    <input id="amount" type="number" step="0.0001" placeholder="Amount in ETH" class="inputBlock" />
+
+                    <div>
+                        <label for="id_proposal">Choose proposal:</label><br />
+                        <select id="id_proposal" class="inputBlock">
+                        </select>
+                    </div>
+                    <button id="voteBtn">Vote</button>
+                    <div id="amountError" class="errorText"> </div>
+                </section>
+
+                <section class="card">
+                    <h2>Contract</h2>
+                    <div>Address: <code id="contractAddr"></code></div>
+                    <div>Balance: <span id="balance">0</span> ETH</div>
+                    <button id="withdrawBtn">Withdraw (owner)</button>
+                </section>
+            </div>
+        </div>
+
+
+        <div class="task-block">
+            <div class="task-block-header">
+                <h1>TASK 2 : Max-min tips</h1>
+                <button id="showTask2SegmentBtn">show task2</button>
+             </div>
+            <div id="task2" class="non-display">
+                <h3 id="GoalAmound">Goal: 0</h3>
+                <h3 id="TotalAmound" class="non-display">Amound: 0</h3>
+
+                <div class="progress-container">
+                    <div class="progress-info" id="progressText">0 / 0 ETH</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <button id="closeTask2SegmentBtn" class="close-button" title="Закрыть">×</button>
+                <button id="showSetProGoalSection">add goal</button>
+
+                <section class="card non-display" id="setProGoalSection">
+                    <div>
+                        <button id="closeSetProGoalSection" class="close-button" title="Закрыть">×</button>
+                        <input id="proGoalInput" type="number" step="0.0001" placeholder="Amount in ETH" class="inputBlock" />
+                        <button id="setProGoalBtn">Set goal</button>
+                        <div id="proGoalError" class="errorText"></div>
+
+                    </div>
+                </section>
+
+
+                <section class="card">
+                    <div>
+                        <label for="id_token">Choose value:</label><br />
+                        <select id="id_token" class="inputBlock">
+                            <option value="0">ETH </option>
+                            <option value="1">COIN</option>
+                        </select>
+
+                        <input type="text" id="tokenAddress" placeholder="Token address" class="inputBlock non-display" />
+                        <button id="setTokenAddressBtn" class="non-display">token address</button>
+                    </div>
+                    <button id="choose-token-task2">Choose</button>
+
+                    <div>Send a tip</div>
+                    <input id="amount-task2" type="number" step="0.0001" placeholder="Amount in ETH" class="inputBlock" />
+                    <div>
+                        <label for="id_tag">Choose tag:</label><br />
+                        <select id="id_tag" class="inputBlock">
+                            <option value="0">support</option>
+                            <option value="1">coffee</option>
+                            <option value="2">pizza</option>
+                        </select>
+                    </div>
+
+                    <button id="sent-tip">Sent tip</button>
+                    <button id="refund-tip">Refund all tip</button>
+                    <div id="amountError-task2" class="errorText"></div>
+                </section>
+            </div>
+            </div>
+</main>
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@6/dist/ethers.umd.min.js"></script>
     <script src="app.js"></script>
+    <script src="app-task2.js"></script>
 </body>
 </html>

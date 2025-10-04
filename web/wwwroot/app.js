@@ -1,15 +1,15 @@
 ﻿(async function () {
+
+   
+
     const statusEl = document.getElementById('status');
     const connectBtn = document.getElementById('connectBtn');
     const voteBtn = document.getElementById('voteBtn');
     const withdrawBtn = document.getElementById('withdrawBtn');
+
+
+    const endVotingAndWithdrawToWinner = document.getElementById('endVotingAndWithdrawToWinner');  
     const showTopProposalSection = document.getElementById('showTopProposalSection');
-    const closeTopProposalSection = document.getElementById('closeTopProposalSection');
-
-
-    const showAddProposalSection = document.getElementById('showAddProposalSection');
-    const closeAddProposal = document.getElementById('closeAddProposal');
-    const addProposalDiv = document.getElementById('AddProposal');
     const addProposalBtn = document.getElementById('addProposalBtn');
 
     const topProposalsDiv = document.getElementById('TopProposal');
@@ -19,12 +19,46 @@
     const contractAddrEl = document.getElementById('contractAddr');
     const balanceEl = document.getElementById('balance');
     const tipsList = document.getElementById('tipsList');
-    
+
+
+    const GoalAmound = document.getElementById('GoalAmound');
+    const TotalAmound = document.getElementById('TotalAmound');
+    const proGoalInput = document.getElementById('proGoalInput');
+    const setProGoalBtn = document.getElementById('setProGoalBtn');
+    const proGoalError = document.getElementById('proGoalError');
+    const amountError2 = document.getElementById('amountError-task2');
+    const tokenAddress = document.getElementById('tokenAddress');
+    const setTokenAddressBtn = document.getElementById('setTokenAddressBtn');
+
+
 
     let provider, signer, contract, cfg;
     let isConnecting = false;
 
     function log(msg) { statusEl.textContent = 'Status: ' + msg; }
+
+    withdrawBtn.addEventListener('click', withdraw);
+    voteBtn.addEventListener('click', votedProposal);
+
+    addProposalBtn.addEventListener('click', addProposal);
+    showTopProposalSection.addEventListener('click', showTopProposals);
+    endVotingAndWithdrawToWinner.addEventListener('click', endVotingAndWithdraw);
+
+
+    const id_token = document.getElementById('id_token');
+    const chooseTokenTask2 = document.getElementById('choose-token-task2');
+    const sentTipBtn = document.getElementById('sent-tip');
+    const refundTipBtn = document.getElementById('refund-tip');
+    const amountEl2 = document.getElementById('amount-task2');
+    const idTag = document.getElementById('id_tag');
+
+
+    setProGoalBtn.addEventListener('click', setProGoal);
+    chooseTokenTask2.addEventListener('click', chooseToken);
+    sentTipBtn.addEventListener('click', sendTip);
+    refundTipBtn.addEventListener('click', refundTip);
+    setTokenAddressBtn.addEventListener('click', setTokenAddress);
+
 
     async function loadConfig() {
         const res = await fetch('contractConfig.json');
@@ -54,7 +88,12 @@
        
 
             await loadProposals();
+            await refreshProgress();
+           
+            await refreshProgress();
             subscribeEvents();
+
+            await loadStateFromContract();
         } catch (e) {
             alert("Error: " + e.message);
         } finally {
@@ -74,17 +113,7 @@
         }
     }
 
-    async function sendTip() {
-        const eth = amountEl.value.trim();
-        if (!eth || Number(eth) <= 0) { log('Enter amount > 0'); return; }
-        const tx = await contract.bid({ value: ethers.parseEther(eth) });
-        log('Sending tx: ' + tx.hash);
-        await tx.wait();
-        log('Tip sent ');
-        
-        await refreshBalance();
-    }
-
+   
     function renderTip(tip) {
         const li = document.createElement('li');
         const ts = new Date(Number(tip.timestamp) * 1000).toLocaleString();
@@ -210,8 +239,8 @@
             await refreshBalance();
             log("Голосование завершено успешно.");
         } catch (error) {
-            //const sum = contract.getHighestBid();
-           // amountError.textContent = `Недостаточная сумма для голосования. Введите больше чем ${min} ETH`;
+            const sum = contract.getHighestBid();
+            amountError.textContent = `Недостаточная сумма для голосования. Введите больше чем ${min} ETH`;
             console.error(error);
             log("Ошибка при голосовании: " + (error?.reason || error.message));
         }
@@ -259,34 +288,45 @@
         await TopProposals();
     }
 
-   
+    async function endVotingAndWithdraw() {
+        try {
+            if (endVotingAndWithdrawToWinner.textContent === "Stop") {
+                await contract.endAuction(); 
+                endVotingAndWithdrawToWinner.textContent = "Withdraw"; 
+                voteBtn.classList.add('non-display');
+                amountError.textContent = 'Голосование окончено!';
+            } else if (endVotingAndWithdrawToWinner.textContent === "Withdraw") {
+                await contract.withdraw(); 
+                endVotingAndWithdrawToWinner.classList.add('non-display'); 
+            }
+        } catch (err) {
+            console.error("Ошибка при вызове функции контракта:", err);
+            alert("Что-то пошло не так. Проверь консоль.");
+        }
 
-   // connectBtn.addEventListener('click', connect);
-    withdrawBtn.addEventListener('click', withdraw);
-    voteBtn.addEventListener('click', votedProposal);
-
-    addProposalBtn.addEventListener('click', addProposal);
-    showTopProposalSection.addEventListener('click', showTopProposals);
+    }
 
 
+    async function loadStateFromContract() {
+        const ended = await contract.getAuctionEnded();
+        if (ended) {
+            endVotingAndWithdrawToWinner.textContent = "Withdraw";
+            voteBtn.classList.add('non-display');
+            amountError.textContent = 'Голосование окончено!';
+        }
+        else {
+            endVotingAndWithdrawToWinner.textContent = "Stop";
+            const bal = await provider.getBalance(cfg.address);
+        }
+    }
 
-    showAddProposalSection.addEventListener('click', function () {
-        addProposalDiv.classList.remove('non-display');
-    });
 
-  
-    closeAddProposal.addEventListener('click', function () {
-        addProposalDiv.classList.add('non-display');
-    });
 
-    closeTopProposalSection.addEventListener('click', function () {
-        topProposalsDiv.classList.add('non-display');
-    });
 
     
     amountEl.addEventListener('input', async () => {
         const value = amountEl.value.trim();
-        
+
         if (!value || Number(value) <= 0) {
             amountError.textContent = '';
             return;
@@ -300,7 +340,7 @@
                 const minEth = ethers.formatEther(highestBid);
                 amountError.textContent = `Ставка слишком низкая. Введите больше чем ${minEth} ETH`;
             } else {
-                amountError.textContent = ''; 
+                amountError.textContent = '';
             }
         } catch (err) {
             console.error("Ошибка при получении highestBid:", err);
@@ -309,7 +349,213 @@
     });
 
 
+    //======================================================
+    let goalEth = 0;
+    let totalEth = 0;
 
-    window.onload = connect;
-    await loadConfig();
+    let goal = 0;
+    let total = 0;
+
+   
+
+    async function refreshProgress() {
+        if (!contract) {
+            console.warn("Contract is undefined in refreshProgress");
+            return;
+        }
+
+        try {
+             goal = await contract.getGoalAmount();
+             total = await contract.getTotalAmount();
+
+            GoalAmound.textContent = 'Goal: ' + ethers.formatEther(goal) + ' ETH';
+            TotalAmound.textContent = 'Amound: ' + ethers.formatEther(total) + ' ETH';
+
+            const goalEth = parseFloat(ethers.formatEther(goal));
+            const totalEth = parseFloat(ethers.formatEther(total));
+
+            const percent = goalEth > 0 ? Math.min((totalEth / goalEth) * 100, 100) : 0;
+
+            document.getElementById('progressText').textContent = `${totalEth.toFixed(4)} / ${goalEth.toFixed(4)} ETH`;
+            document.getElementById('progressFill').style.width = percent + '%';
+        } catch (err) {
+            console.error("Ошибка при обновлении прогресса:", err);
+            alert("Ошибка при получении данных с контракта");
+        }
+    }
+    async function setProGoal() {
+        await connect();
+
+        const input = proGoalInput.value;
+
+        if (!input || Number(input) <= 0) {
+            proGoalError.textContent = 'Goal must be > 0';
+            return;
+        }
+
+        try {
+            const amount = ethers.parseEther(input);
+
+          
+            const signer = await provider.getSigner();
+            const tx = await contract.connect(signer).setGoalAmount(amount);
+
+          
+            await tx.wait();
+
+            await refreshProgress();
+        } catch (err) {
+            console.error("Ошибка при установке цели:", err);
+            alert("Ошибка при установке цели");
+        }
+    }
+
+
+
+    async function chooseToken() {
+        const token = id_token.value;
+        const isToken = token === "1";
+
+        if (isToken) {
+            const tokenAddr = await contract.getTokenAddress();
+            if (tokenAddr === "0x0000000000000000000000000000000000000000") {
+                alert("❌ Установи адрес токена перед включением");
+                tokenAddress.classList.remove('non-display');
+                setTokenAddressBtn.classList.remove('non-display');
+                return;
+            }
+        }
+        await contract.SetToken(isToken);
+        alert(isToken ? " Token mode activated" : " ETH mode activated");
+    }
+
+    async function setTokenAddress() {
+        let tokenAddr = tokenAddress.value.trim();
+        await contract.setTokenAddress(tokenAddr);
+    }
+
+
+  
+
+    async function sendTip() {
+       
+        amountError2.textContent = '';
+        const eth = amountEl2.value.trim();
+        if (!eth || Number(eth) <= 0) { log('Enter amount > 0'); return; }
+
+        const amount = ethers.parseEther(eth);
+        console.log(`amount ${amount}`)
+        let minDonation = await contract.getMinDonation();
+        console.log(`minDonation ${minDonation}`)
+        let maxDonation = await contract.getMaxDonation();
+        console.log(`maxDonation ${maxDonation}`)
+        if (amount < minDonation) {
+
+            amountError2.textContent = `Enter amount ≥ ${ethers.formatEther(minDonation)} ETH`;
+            return;
+        }
+
+        if (amount > maxDonation) {
+            amountError2.textContent = `Enter amount ≤ ${ethers.formatEther(maxDonation)} ETH`;
+            return;
+        }
+
+        const tagText = idTag.options[idTag.selectedIndex].text;
+
+
+        const selectedTokenValue = id_token.value; // "0" = ETH, "1" = COIN
+        const useToken = selectedTokenValue === "1";
+
+        if (useToken) {
+
+            const tokenAddress = await contract.getTokenAddress(); 
+            const tokenAbi = ["function approve(address spender, uint amount) public returns (bool)"];
+            const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, contract.signer);
+
+           
+            const approveTx = await tokenContract.approve(contract.target, amount);
+            console.log("✅ Approve отправлен:", approveTx.hash);
+            await approveTx.wait();
+            console.log("✅ Approve подтверждён");
+
+            
+            const tx = await contract.tip(tagText);
+            console.log("💸 Tip отправлен:", tx.hash);
+            await tx.wait();
+            console.log("✅ Tip успешен!");
+
+            alert("Tip sent with token!");
+        } else {
+           
+            const tx = await contract.tip(tagText, { value: amount });
+            console.log("💸 Tip отправлен (ETH):", tx.hash);
+            await tx.wait();
+            console.log("✅ Tip успешен!");
+
+            alert("Tip sent with ETH!");
+        }
+
+        await refreshBalance();
+        await refreshProgress();
+    }
+
+    async function refundTip() {
+
+        try {
+            await connect();
+            if (typeof signer === "undefined" || !signer) {
+                console.log("Signer не инициализирован. Сначала подключитесь к MetaMask.");
+                return;
+            }
+            if (!signer || !contract) {
+                console.log("Сначала подключитесь к кошельку!");
+                return;
+            }
+            const userAddress = await signer.getAddress();
+            const balance = await contract.getBalance(userAddress);
+
+           
+            console.log("Мой баланс для возврата:", ethers.formatEther(balance));
+
+            if (balance == 0) {
+                alert("У вас нет средств для возврата.");
+                return;
+            }
+
+
+            const tx = await contract.refund();
+            console.log("Транзакция отправлена:", tx.hash);
+
+            const receipt = await tx.wait();
+            console.log("Возврат выполнен! Hash:", receipt.transactionHash);
+
+            const total = await contract.getTotalAmount();
+           
+
+            let newTotalEth = parseFloat(ethers.formatEther(total));
+            document.getElementById('progressText').textContent = `${newTotalEth.toFixed(4)} / ${goalEth.toFixed(4)} ETH`;
+
+            alert("Возврат средств прошёл успешно!");
+        } catch (err) {
+            console.error("Ошибка при возврате:", err);
+
+            const errorMsg = err?.data?.message || err?.message || "Неизвестная ошибка";
+            alert("Ошибка при возврате: " + errorMsg);
+        }
+        await refreshProgress();
+    }
+
+
+
+    window.addEventListener("load", async () => {
+        try {
+            await loadConfig();       
+            await connect();           
+            await refreshProgress();   
+        } catch (err) {
+            console.error("Ошибка инициализации:", err);
+            alert("Ошибка инициализации: " + err.message);
+        }
+    });
+
 })();

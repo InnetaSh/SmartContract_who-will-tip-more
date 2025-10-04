@@ -7,8 +7,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function main() {
+  const minDonation = hre.ethers.parseEther("0.001");
+  const maxDonation = hre.ethers.parseEther("1.0");
+
+  
   const Auctions = await hre.ethers.getContractFactory("Auctions");
-  const auctions = await Auctions.deploy();
+  const auctions = await Auctions.deploy(minDonation, maxDonation);
   await auctions.waitForDeployment();
 
   const address = await auctions.getAddress();

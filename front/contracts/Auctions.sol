@@ -1,9 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+
 contract Auctions {
+    using Strings for uint;
     address public owner;
-    
+
+    //===================PART1===========================
+
     uint public highestBid;
     address public highestBidder;
     bool public auctionEnded;
@@ -25,8 +31,44 @@ contract Auctions {
     event Withdrawn(address to, uint amount);
 
 
-    constructor() { 
-        owner = msg.sender; 
+
+
+    //===================PART2===========================
+    uint minDonation;
+    uint maxDonation;
+    uint goalAmount; 
+    uint totalAmount;
+
+    bool public useToken; // true — использовать ERC20, false — использовать ETH
+    address tokenAddress = 0x0000000000000000000000000000000000000000; 
+
+    IERC20 public token; // адрес токена (если используем токен)
+    bool public goalReached;
+
+    
+    struct Tip {
+        address from;
+        uint256 amount;
+        string tag;
+        uint256 timestamp;
+    }
+
+    Tip[] public tips;
+
+    mapping(address => uint256) balances;
+
+    event Tipped(address indexed from, uint amount, string tag);
+    event GoalReached(uint total);
+    event Refunded(address indexed to, uint amount);
+
+    //===================ALL===========================
+   constructor(
+        uint _minDonation,
+        uint _maxDonation
+    ) {
+        owner = msg.sender;
+        minDonation = _minDonation;
+        maxDonation = _maxDonation;
     }
 
 
@@ -35,7 +77,9 @@ contract Auctions {
         _;
     }
 
-    // ====================================
+
+
+    //===================PART1 FUNCTION===========================
     function bid(uint proposalIndex) external payable {
         require(!auctionEnded, "Auction ended");
         require(msg.value > 0, "No ETH sent");
@@ -74,7 +118,7 @@ contract Auctions {
    
 
 
-    function endAuctionAndWithdrawToWinner() external onlyOwner {
+    function endAuction() external onlyOwner {
         require(!auctionEnded, "Already ended");
         auctionEnded = true;
 
@@ -90,11 +134,15 @@ contract Auctions {
 
         emit VotingEnded(winnerIndex, proposals[winnerIndex]);
 
-        
-        uint bal = address(this).balance;
+    }
+
+    function withdraw() external onlyOwner  {
+         require(auctionEnded, "Cooldown: withdraw too soon");
+
+        uint256 bal = address(this).balance;
         require(bal > 0, "Nothing to withdraw");
-        (bool sent, ) = payable(owner).call{value: bal}("");
-        require(sent, "Withdraw failed");
+        (bool ok,) = payable(owner).call{value: bal}("");
+        require(ok, "Withdraw failed");
 
         emit Withdrawn(owner, bal);
     }
@@ -135,7 +183,7 @@ contract Auctions {
 
 
 
-    //==============================================
+    
     function getProposals() external view returns (string[] memory) {
         return proposals;
     }
@@ -152,7 +200,116 @@ contract Auctions {
         return highestBid;
     }
 
+    function getAuctionEnded() external view returns (bool) {
+        return auctionEnded;
+    }
 
+
+   //===================PART2 FUNCTION===========================
+
+    function SetToken(bool _token) public{
+        useToken = _token;
+        if (useToken) {
+            require(tokenAddress != address(0), "Token address required");
+            token = IERC20(tokenAddress);
+        }
+    }
+
+
+
+
+    function setGoalAmount(uint _goalAmount) external onlyOwner {
+        goalAmount = _goalAmount;
+    }
+
+    function setTokenAddress(address _tokenAddress) external onlyOwner {
+        require(_tokenAddress != address(0), "Invalid token address");
+        tokenAddress = _tokenAddress;
+    }
+
+    function tip(string calldata tag) external payable{
+        uint256 amount;
+    
+  
+        if (useToken) {
+            amount = token.allowance(msg.sender, address(this));
+            require(amount >= minDonation && amount <= maxDonation, string(abi.encodePacked("Tip must be between ", minDonation.toString(), " and ", maxDonation.toString())));
+            require(token.transferFrom(msg.sender, address(this), amount), "Token transfer failed");
+        } else {
+            amount = msg.value;
+            require(amount >= minDonation && amount <= maxDonation, string(abi.encodePacked("Tip must be between ", minDonation.toString(), " and ", maxDonation.toString())));
+        }
+
+        balances[msg.sender] += amount;
+            
+        tips.push(Tip({
+            from: msg.sender,
+            amount: amount,
+            tag: tag,
+            timestamp: block.timestamp
+        }));
+
+        totalAmount += amount;
+
+         emit Tipped(msg.sender, amount, tag);
+
+        if (!goalReached && totalAmount >= goalAmount) {
+            goalReached = true;
+            emit GoalReached(totalAmount);
+        }
+    }
+
+    function refund() external {
+       
+        uint256 amount = balances[msg.sender];
+        require(amount > 0, "No contributions");
+
+        balances[msg.sender] = 0;
+        totalAmount -= amount;
+        
+        if (useToken) {
+            require(token.transfer(msg.sender, amount), "Token refund failed");
+        } else {
+            (bool success, ) = payable(msg.sender).call{value: amount}("");
+            require(success, "ETH refund failed");
+        }
+
+        emit Refunded(msg.sender, amount);
+    }
+
+     function getTipsCount() external view returns (uint) {
+        return tips.length;
+    }
+
+    
+    function getTip(uint index) external view returns (Tip memory) {
+        require(index < tips.length, "Index out of range");
+        return tips[index];
+    }
+
+    function getGoalAmount() external view returns (uint) {
+        return goalAmount;
+    }
+
+    function getTotalAmount() external view returns (uint) {
+        return totalAmount;
+    }
+
+    function getMinDonation() external view returns (uint) {
+        return minDonation;
+    }
+    
+    function getMaxDonation() external view returns (uint) {
+        return maxDonation;
+    }
+    
+     function getTokenAddress() external view returns (address) {
+        return tokenAddress;
+    }
+    function getBalance(address user) public view returns (uint256) {
+        return balances[user];
+    }
 }
+
 
 
